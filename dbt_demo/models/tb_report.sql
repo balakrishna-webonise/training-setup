@@ -3,7 +3,7 @@ with tb as (
     select * from {{ ref('staging_trial_balances') }}
 ),
 
-income_statement as (
+report as (
     select
         year,
         month,
@@ -20,23 +20,17 @@ income_statement as (
                 then period_amount
                 else 0
             end
-        ) as expense
+        ) as expense,
+        sum(
+            case
+                when category = 'Asset'
+                then period_amount
+                else 0
+            end
+        ) as asset
     from tb
     group by year, month
     order by year, month
 )
 
-select
-    year,
-    month,
-    revenue,
-    expense,
-    revenue - expense as net_income,
-    sum(revenue - expense) over (
-        partition by year
-        order by month
-        rows between unbounded preceding and current row
-    ) as ytd_net_income
-from income_statement
-where revenue - expense > 0
-order by year, month
+select * from report
