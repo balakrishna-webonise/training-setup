@@ -3,9 +3,18 @@ dbt_demo:
   outputs:
     dev:
       type: postgres
-      host: "{{ env_var('DBT_HOST') }}"
-      user: "{{ env_var('DBT_USER') }}"
-      password: "{{ env_var('DBT_PASS') }}"
+      host: "{{ env_var('DEV_DBT_HOST') }}"
+      user: "{{ env_var('DEV_DBT_USER') }}"
+      password: "{{ env_var('DEV_DBT_PASS') }}"
+      port: 5432
+      dbname: dbt_demo
+      schema: public
+  
+    stage:
+      type: postgres
+      host: "{{ env_var('STAGE_DBT_HOST') }}"
+      user: "{{ env_var('STAGE_DBT_USER') }}"
+      password: "{{ env_var('STAGE_DBT_PASS') }}"
       port: 5432
       dbname: dbt_demo
       schema: public

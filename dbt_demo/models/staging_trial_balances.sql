@@ -1,6 +1,8 @@
 {{
     config(
-        materialized='table'
+        materialized='incremental',
+        unique_key=['gl_number','year','month'],
+        incremental_strategy='delete+insert'
     )
 }}
 
@@ -18,7 +20,7 @@ tb_transformed as (
         right("Month", 2)::int as month,
         "Debit" as debit,
         "Credit" as credit,
-        "Debit" - "Credit" as period_amount
+        {{ calc_period_amount('"Debit"', '"Credit"') }} as period_amount
     from
         trial_balances
 )
