@@ -198,9 +198,7 @@ select year, month, min(loaded_at) first_loaded, max(loaded_at) last_loaded
 from {{ ref('incremental_trial_balances') }}
 group by 1,2
 order by 1,2;
-```
 
----
 
 ### Exercise 4: Advanced Testing (Generic, Singular, Custom)
 
