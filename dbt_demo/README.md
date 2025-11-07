@@ -214,14 +214,14 @@ order by 1,2;
     Test passes when query returns zero rows.
 3. Create a custom generic test macro to validate sequential months with no gaps:
     **Macro File**: `macros/sequential_months.sql`
-    **:HINT**::
-    Use a Common Table Expression (CTE) with ROW_NUMBER() ordered by year and month to assign a chronological sequence number (rn) to every unique month.
+    **:HINT**:
+    *Use a Common Table Expression (CTE) with ROW_NUMBER() ordered by year and month to assign a chronological sequence number (rn) to every unique   month.
 
-   In a second CTE, self-join the first CTE using the condition o2.rn = o1.rn + 1 to pair each month (o1) with the next month (o2).
+   * In a second CTE, self-join the first CTE using the condition o2.rn = o1.rn + 1 to pair each month (o1) with the next month (o2).
 
-   Create a single sortable number (YYYYMM) by calculating (year * 100) + month for both the current and next month.
+   * Create a single sortable number (YYYYMM) by calculating (year * 100) + month for both the current and next month.
 
-   Filter the result (WHERE clause) to find rows where the difference between the next month's YYYYMM and the current month's YYYYMM is greater than 1, indicating a gap.
+   * Filter the result (WHERE clause) to find rows where the difference between the next month's YYYYMM and the current month's YYYYMM is greater than 1, indicating a gap.
 4. Invoke the custom test in `models/models.yml` under a model:
     ```yaml
     - name: income_statement
