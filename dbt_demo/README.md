@@ -169,6 +169,78 @@ ORDER BY month
 
 ---
 
+### Exercise 3: Incremental Loading for Monthly Trial Balances
+
+**Objective**: Create an incremental model that only loads new months of trial balance data when they appear in the seed (simulating an append of new periods).
+
+**File to Create**: `models/incremental_trial_balances.sql`
+
+**Requirements**:
+1. Reference `staging_trial_balances` using `{{ ref('staging_trial_balances') }}`.
+2. Configure the model with jinja script with materialised as incremental, unique key and incremental strategy
+3. On a full run (not incremental) select all columns from `staging_trial_balances`.
+4. Add a derived column `loaded_at` using `current_timestamp` to audit loads.
+5. Run initial load with `dbt run --select incremental_trial_balances --full-refresh`.
+6. Modify the seed (add a new future month) and rerun without `--full-refresh` to observe only new records appended.
+
+**Bonus**:
+- Demonstrate changing a prior month and using `--full-refresh` to reconcile updates.
+
+**Expected Output Columns**:
+- All columns from `staging_trial_balances` plus:
+   - `loaded_at`
+
+**Verification Commands**:
+-- Count rows
+select count(*) from {{ ref('incremental_trial_balances') }};
+-- Distinct months
+select year, month, min(loaded_at) first_loaded, max(loaded_at) last_loaded
+from {{ ref('incremental_trial_balances') }}
+group by 1,2
+order by 1,2;
+```
+
+---
+
+### Exercise 4: Advanced Testing (Generic, Singular, Custom)
+
+**Objective**: Strengthen data quality via dbt tests—add generic tests, create a singular business rule test, and build one custom test macro.
+
+**Files to Create / Modify**:
+1. Update `models/models.yml` to add tests for existing models:
+    - For `staging_trial_balances`:
+       - `tests:` `not_null: [gl_number, gl_name, category]`
+       - `unique:` composite (`gl_number`, `year`, `month`)
+2. Create singular test file: `tests/net_income_positive.sql` ensuring positive net income for months after first quarter.
+   **:HINT**:: Write sql query with filter month > 3 and net_income <= 0
+    Test passes when query returns zero rows.
+3. Create a custom generic test macro to validate sequential months with no gaps:
+    **Macro File**: `macros/sequential_months.sql`
+    **:HINT**::
+    Use a Common Table Expression (CTE) with ROW_NUMBER() ordered by year and month to assign a chronological sequence number (rn) to every unique month.
+
+   In a second CTE, self-join the first CTE using the condition o2.rn = o1.rn + 1 to pair each month (o1) with the next month (o2).
+
+   Create a single sortable number (YYYYMM) by calculating (year * 100) + month for both the current and next month.
+
+   Filter the result (WHERE clause) to find rows where the difference between the next month's YYYYMM and the current month's YYYYMM is greater than 1, indicating a gap.
+4. Invoke the custom test in `models/models.yml` under a model:
+    ```yaml
+    - name: income_statement
+       tests:
+          - sequential_months:
+                year_column: year
+                month_column: month
+    ```
+5. Run tests
+
+**Success Criteria**:
+- All generic tests pass (no duplicate `(gl_number, year, month)` records, valid categories).
+-Test returns zero failing rows.
+- Custom sequential months test returns no gaps.
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
