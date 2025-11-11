@@ -29,3 +29,4 @@ models:
         description: "Credit amount for the account."
       - name: period_amount
         description: "Calculated period amount as debit minus credit."
+        identifier: trial_balances

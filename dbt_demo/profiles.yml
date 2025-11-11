@@ -15,6 +15,10 @@ dbt_demo:
       host: "{{ env_var('STAGE_DBT_HOST') }}"
       user: "{{ env_var('STAGE_DBT_USER') }}"
       password: "{{ env_var('STAGE_DBT_PASS') }}"
+      host: "{{ env_var('DBT_HOST') }}"
+      user: "{{ env_var('DBT_USER') }}"
+      password: "{{ env_var('DBT_PASS') }}"
       port: 5432
       dbname: dbt_demo
       schema: public
+      

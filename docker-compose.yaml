@@ -36,4 +36,3 @@ networks:
     driver: bridge
     external: true
     name: ctm_backend_venuplus-unifi-api
-  
