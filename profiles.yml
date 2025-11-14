@@ -1,0 +1,12 @@
+training_dbt:
+  outputs:
+    dev:
+      dbname: dbt_demo
+      host: ctm_db
+      pass: haptiq123#
+      port: 5432
+      schema: public
+      threads: 1
+      type: postgres
+      user: postgres
+  target: dev

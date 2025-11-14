@@ -1,25 +1,25 @@
 services:
-  db:
-    image: postgres:15
-    container_name: dbt_postgres
-    environment:
-      POSTGRES_USER: dbt_user
-      POSTGRES_PASSWORD: dbt_pass
-      POSTGRES_DB: dbt_demo
-    ports:
-      - "5432:5432"
-    volumes:
-      - dbt_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dbt_user -d dbt_demo"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - dbt_prefect_network
+  # db:
+  #   image: postgres:15
+  #   container_name: dbt_postgres
+  #   environment:
+  #     POSTGRES_USER: dbt_user
+  #     POSTGRES_PASSWORD: dbt_pass
+  #     POSTGRES_DB: dbt_demo
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - dbt_db_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U dbt_user -d dbt_demo"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - dbt_prefect_network
 
   prefect-db:
-    image: postgres:15
+    image: postgres:18
     container_name: prefect_postgres
     environment:
       POSTGRES_USER: prefect_user
@@ -36,6 +36,7 @@ services:
       retries: 5
     networks:
       - dbt_prefect_network
+      - ctm_backend_venuplus-unifi-api
 
   prefect:
     build:
@@ -49,8 +50,8 @@ services:
       # Change the path to your local path
       - /path/to/project:/usr/app
     depends_on:
-      db:
-        condition: service_healthy
+      # db:
+      #   condition: service_healthy
       prefect-db:
         condition: service_healthy
     environment:
@@ -59,15 +60,41 @@ services:
       DBT_PROFILES_DIR: /usr/app/dbt_demo
       DBT_PROJECT_DIR: /usr/app/dbt_demo
       # Database connection for dbt
-      DBT_HOST: db
-      DBT_USER: dbt_user
-      DBT_PASS: dbt_pass
+      DBT_HOST: ctm_db
+      DBT_USER: postgres
+      DBT_PASS: haptiq123#
     networks:
       - dbt_prefect_network
+      - ctm_backend_venuplus-unifi-api
     command: prefect server start --host 0.0.0.0 --port 4200
     working_dir: /usr/app
-    tty: true
-    stdin_open: true
+  # db:
+  #   image: postgres:15
+  #   container_name: dbt_postgres
+  #   environment:
+  #     POSTGRES_USER: dbt_user
+  #     POSTGRES_PASSWORD: dbt_pass
+  #     POSTGRES_DB: dbt_demo
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - ./data:/var/lib/postgresql/data
+
+  # dbt:
+  #   build:
+  #     context: .
+  #     args:
+  #       UID: 1001
+  #       GID: 1001
+  #   container_name: dbt_container
+  #   volumes:
+  #     # Map your local project directory
+  #     - .:/usr/app
+  #   # depends_on:
+  #   #   - db
+  #   working_dir: /usr/app/training_dbt
+  #   tty: true
+  #   stdin_open: true
 
   prefect-worker:
     build:
@@ -81,27 +108,32 @@ services:
     depends_on:
       prefect:
         condition: service_started
-      db:
-        condition: service_healthy
+      # db:
+      #   condition: service_healthy
     environment:
       PREFECT_API_URL: http://prefect:4200/api
       DBT_PROFILES_DIR: /usr/app/dbt_demo
       DBT_PROJECT_DIR: /usr/app/dbt_demo
       # Database connection for dbt
-      DBT_HOST: db
-      DBT_USER: dbt_user
-      DBT_PASS: dbt_pass
+      DBT_HOST: ctm_db
+      DBT_USER: postgres
+      DBT_PASS: haptiq123#
     networks:
       - dbt_prefect_network
+      - ctm_backend_venuplus-unifi-api
     # Worker will wait for Prefect API, create work pool if needed, then start
     command: /usr/local/bin/prefect-worker-start.sh
     working_dir: /usr/app
     restart: unless-stopped
 
-networks:
-  dbt_prefect_network:
-    driver: bridge
-
 volumes:
   dbt_db_data:
   prefect_db_data:
+
+networks:
+  dbt_prefect_network:
+    driver: bridge
+  ctm_backend_venuplus-unifi-api:
+    driver: bridge
+    external: true
+    name: ctm_backend_venuplus-unifi-api
