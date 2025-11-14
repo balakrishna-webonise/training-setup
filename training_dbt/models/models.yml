@@ -1,4 +1,3 @@
-
 version: 2
 
 sources:
@@ -7,3 +6,36 @@ sources:
     tables:
       - name: tb
         identifier: trial_balances
+
+models:
+  - name: staging_trial_balances
+    description: "Staging model for trial balances with basic transformations"
+    columns:
+      - name: gl_number
+        description: "General ledger account number"
+        tests:
+          - not_null
+      - name: gl_name
+        description: "General ledger account name"
+        tests:
+          - not_null
+      - name: category
+        description: "Account category (Asset, Liability, Equity, Revenue, Expense)"
+        tests:
+          - not_null
+      - name: year
+        description: "Fiscal year"
+      - name: month
+        description: "Fiscal month"
+    tests:
+      - unique:
+          column_name: "gl_number || '_' || year || '_' || month"
+          config:
+            severity: error
+
+  - name: income_statement
+    description: "Income statement model showing revenue and expenses by period"
+    tests:
+      - sequential_months:
+          year_column: year
+          month_column: month
