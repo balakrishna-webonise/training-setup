@@ -26,8 +26,8 @@ services:
     working_dir: /usr/app/training_dbt
     tty: true
     environment:
-      DBT_PROFILES_DIR: /usr/app/dbt_demo
-      DBT_PROJECT_DIR: /usr/app/dbt_demo
+      DBT_PROFILES_DIR: /usr/app
+      DBT_PROJECT_DIR: /usr/app/training_dbt
     networks:
       - ctm_backend_venuplus-unifi-api
 

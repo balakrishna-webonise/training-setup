@@ -11,6 +11,7 @@ with trial_balances as (
 
 tb_transformed as (
     select
+        row_number() over (order by "Account_ID", "Month") as id,
         "Account_ID" as gl_number,
         "Account_Name" as gl_name,
         "Category" as category,
