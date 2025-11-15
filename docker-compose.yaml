@@ -1,26 +1,39 @@
-version: '3.8'
 services:
-  db:
-    image: postgres:15
-    container_name: dbt_postgres
-    environment:
-      POSTGRES_USER: dbt_user
-      POSTGRES_PASSWORD: dbt_pass
-      POSTGRES_DB: dbt_demo
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./data:/var/lib/postgresql/data
+  # db:
+  #   image: postgres:15
+  #   container_name: dbt_postgres
+  #   environment:
+  #     POSTGRES_USER: dbt_user
+  #     POSTGRES_PASSWORD: dbt_pass
+  #     POSTGRES_DB: dbt_demo
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - ./data:/var/lib/postgresql/data
 
   dbt:
-    build: .
+    build:
+      context: .
+      args:
+        UID: 1001
+        GID: 1001
     container_name: dbt_container
     volumes:
       # Map your local project directory
-      - /path/to/project_dir:/usr/app
-    depends_on:
-      - db
-    working_dir: /usr/app
+      - .:/usr/app
+    # depends_on:
+    #   - db
+    working_dir: /usr/app/training_dbt
     tty: true
     environment:
-      DBT_PROFILES_DIR: /usr/app
+      DBT_PROFILES_DIR: /usr/app/dbt_demo
+      DBT_PROJECT_DIR: /usr/app/dbt_demo
+    networks:
+      - ctm_backend_venuplus-unifi-api
+
+networks:
+  ctm_backend_venuplus-unifi-api:
+    driver: bridge
+    external: true
+    name: ctm_backend_venuplus-unifi-api
+  
