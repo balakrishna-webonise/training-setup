@@ -18,25 +18,26 @@ services:
   #   networks:
   #     - dbt_prefect_network
 
-  prefect-db:
-    image: postgres:18
-    container_name: prefect_postgres
-    environment:
-      POSTGRES_USER: prefect_user
-      POSTGRES_PASSWORD: prefect_pass
-      POSTGRES_DB: prefect_db
-    ports:
-      - "5433:5432"
-    volumes:
-      - prefect_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U prefect_user -d prefect_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - dbt_prefect_network
-      - ctm_backend_venuplus-unifi-api
+  # prefect-db:
+  #   image: postgres:18
+  #   container_name: prefect_postgres
+  #   environment:
+  #     POSTGRES_USER: prefect_user
+  #     POSTGRES_PASSWORD: prefect_pass
+  #     POSTGRES_DB: prefect_db
+  #   ports:
+  #     - "5433:5432"
+  #   volumes:
+  #     - prefect_db_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U prefect_user -d prefect_db"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - dbt_prefect_network
+  #     - ctm_backend_venuplus-unifi-api
+  #     - ctm_backend_venuplus-unifi
 
   prefect:
     build:
@@ -48,14 +49,14 @@ services:
     volumes:
       - ./prefect_data:/home/prefect/.prefect
       # Change the path to your local path
-      - /path/to/project:/usr/app
-    depends_on:
+      - .:/usr/app
+    # depends_on:
       # db:
       #   condition: service_healthy
-      prefect-db:
-        condition: service_healthy
+      # prefect-db:
+      #   condition: service_healthy
     environment:
-      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://prefect_user:prefect_pass@prefect-db:5432/prefect_db
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://postgres:haptiq123#@ctm_db:5432/prefect_db
       PREFECT_API_URL: http://localhost:4200/api
       DBT_PROFILES_DIR: /usr/app/dbt_demo
       DBT_PROJECT_DIR: /usr/app/dbt_demo
@@ -66,6 +67,7 @@ services:
     networks:
       - dbt_prefect_network
       - ctm_backend_venuplus-unifi-api
+      - ctm_backend_venuplus-unifi
     command: prefect server start --host 0.0.0.0 --port 4200
     working_dir: /usr/app
   # db:
@@ -104,7 +106,7 @@ services:
     volumes:
       - ./prefect_data:/home/prefect/.prefect
       # Change the path to your local path
-      - /path/to/project:/usr/app
+      - .:/usr/app
     depends_on:
       prefect:
         condition: service_started
@@ -121,6 +123,7 @@ services:
     networks:
       - dbt_prefect_network
       - ctm_backend_venuplus-unifi-api
+      - ctm_backend_venuplus-unifi
     # Worker will wait for Prefect API, create work pool if needed, then start
     command: /usr/local/bin/prefect-worker-start.sh
     working_dir: /usr/app
@@ -137,3 +140,8 @@ networks:
     driver: bridge
     external: true
     name: ctm_backend_venuplus-unifi-api
+
+  ctm_backend_venuplus-unifi:
+    driver: bridge
+    external: true
+    name: ctm_backend_venuplus-unifi
